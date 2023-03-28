@@ -11,8 +11,8 @@ import (
 )
 
 type Storage struct {
-	db  *sqlx.DB   // database connection
-	log log.Logger // log
+	db  *sqlx.DB    // database connection
+	log *log.Logger // logger
 
 	userRepository storage.UserI // userRepository storage.UserI
 	postRepository storage.PostI // postRepository storage.PostI
@@ -35,7 +35,7 @@ func (s *Storage) Post() storage.PostI {
 	}
 
 	// if postRepository is nil, create a new one
-	s.postRepository = NewPostRepo(s.db)
+	s.postRepository = newPostRepo(s.db)
 
 	// return postRepository
 	return s.postRepository
@@ -52,14 +52,14 @@ func (s *Storage) User() storage.UserI {
 	}
 
 	// if userRepository is nil, create a new one
-	s.userRepository = NewUserRepo(s.db)
+	s.userRepository = newUserRepo(s.db)
 
 	// return userRepository
 	return s.userRepository
 }
 
 // NewPostgres creates a new instance of the Postgres storage.
-func NewPostgres(ctx context.Context, cfg *config.Config, log log.Logger) (storage.StorageI, error) {
+func NewPostgres(ctx context.Context, cfg *config.Config, log *log.Logger) (storage.StorageI, error) {
 
 	// Create a connection string to connect to the database.
 	postgresConnString := fmt.Sprintf(

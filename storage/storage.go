@@ -1,6 +1,10 @@
 package storage
 
-import "github.com/realtemirov/api-crud-template/models"
+import (
+	"context"
+
+	"github.com/realtemirov/api-crud-template/models"
+)
 
 type StorageI interface {
 	CloseDB() error
@@ -9,20 +13,20 @@ type StorageI interface {
 }
 
 type UserI interface {
-	CreateUser(use *models.User) (*models.User, error)
-	GetUserByID(id int64) (*models.User, error)
-	GetUserByEmail(email string) (*models.User, error)
-	GetUserByUserName(userName string) (*models.User, error)
-	GetUsers(meta *models.Meta) (*models.GetAllUsersResponse, error)
-	UpdateUser(use *models.User) (*models.User, error)
-	DeleteUser(id int64) error
+	CreateUser(ctx context.Context, use *models.User) (*models.User, error)
+	GetUserByID(ctx context.Context, id int64) (*models.User, error)
+	GetUserByEmail(ctx context.Context, email string) (*models.User, error)
+	GetUserByUserName(ctx context.Context, userName string) (*models.User, error)
+	GetUsers(ctx context.Context, meta *models.Meta) (*models.GetAllUsersResponse, error)
+	UpdateUser(ctx context.Context, use *models.User) (*models.User, error)
+	DeleteUser(ctx context.Context, id int64) error
 }
 
 type PostI interface {
-	CreatePost(post *models.Post) (*models.Post, error)
-	GetPostByID(id int64) (*models.Post, error)
-	GetPostByUserID(userID int64) (*models.Post, error)
-	GetPosts(meta *models.Meta) (*models.GetAllPostsResponse, error)
-	UpdatePost(post *models.Post) (*models.Post, error)
-	DeletePost(id int64) error
+	CreatePost(ctx context.Context, post *models.Post) (*models.Post, error)
+	GetPostByID(ctx context.Context, id int64) (*models.Post, error)
+	GetPostByUserID(ctx context.Context, userID int64) (*models.Post, error)
+	GetPosts(ctx context.Context, meta *models.Meta) (*models.GetAllPostsResponse, error)
+	UpdatePost(ctx context.Context, post *models.Post) (*models.Post, error)
+	DeletePost(ctx context.Context, id int64) error
 }

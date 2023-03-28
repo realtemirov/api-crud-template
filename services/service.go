@@ -1,18 +1,26 @@
 package services
 
-import "github.com/realtemirov/api-crud-template/storage"
+import (
+	"log"
 
-type service struct {
-	db storage.StorageI
+	"github.com/realtemirov/api-crud-template/config"
+	"github.com/realtemirov/api-crud-template/storage"
+)
 
+type Services struct {
+	storage     storage.StorageI
+	cnf         *config.Config
+	log         *log.Logger
 	UserService *userService
 	PostService *postService
 }
 
-func NewService(repository storage.StorageI) *service {
-	return &service{
-		db:          repository,
-		UserService: newUserService(repository.User()),
-		PostService: newPostService(repository.Post()),
+func NewService(cnf *config.Config, storage storage.StorageI, log *log.Logger) *Services {
+	return &Services{
+		storage:     storage,
+		cnf:         cnf,
+		log:         log,
+		UserService: newUserService(storage.User(), log),
+		PostService: newPostService(storage.Post(), log),
 	}
 }
