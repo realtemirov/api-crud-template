@@ -10,6 +10,6 @@ type User struct {
 }
 
 type GetAllUsersResponse struct {
-	Meta Meta   `json:"meta"`
+	Meta *Meta  `json:"meta"`
 	Data []User `json:"data"`
 }

@@ -35,7 +35,7 @@ func (s *Storage) Post() storage.PostI {
 	}
 
 	// if postRepository is nil, create a new one
-	s.postRepository = newPostRepo(s.db)
+	s.postRepository = newPostRepo(s.db, s.log)
 
 	// return postRepository
 	return s.postRepository
@@ -52,7 +52,7 @@ func (s *Storage) User() storage.UserI {
 	}
 
 	// if userRepository is nil, create a new one
-	s.userRepository = newUserRepo(s.db)
+	s.userRepository = newUserRepo(s.db, s.log)
 
 	// return userRepository
 	return s.userRepository
