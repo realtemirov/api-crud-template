@@ -19,7 +19,6 @@ services:
         build:
             context: .
             dockerfile: Dockerfile
-        # image: realtemirov/import:latest
         ports:
             - "8080:4002"
         env_file:

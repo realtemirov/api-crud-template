@@ -72,7 +72,7 @@ func NewPostgres(ctx context.Context, cfg *config.Config, log zerolog.Logger) (s
 		cfg.PostgresPassword,
 		cfg.PostgresSSLMode,
 	)
-
+	log.Info().Msg(postgresConnString)
 	// log
 	log.Info().Msg("Starting connection to the database...")
 
