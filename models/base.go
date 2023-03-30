@@ -1,10 +1,10 @@
 package models
 
 type Base struct {
-	ID        int64 `json:"id" db:"id"`
-	CreatedAt int   `json:"created_at" db:"created_at"`
-	UpdatedAt int   `json:"updated_at" db:"updated_at"`
-	DeletedAt int   `json:"deleted_at" db:"deleted_at"`
+	ID        int `json:"id" db:"id"`
+	CreatedAt int `json:"created_at" db:"created_at"`
+	UpdatedAt int `json:"updated_at" db:"updated_at"`
+	DeletedAt int `json:"deleted_at" db:"deleted_at"`
 }
 
 type Meta struct {
@@ -14,11 +14,18 @@ type Meta struct {
 	CurrentPage int `json:"current_page"`
 }
 
-func (m *Meta) GetLimitAndOffset() (int, int) {
+type Response struct {
+	Code    int         `json:"code"`
+	Data    interface{} `json:"data"`
+	Message string      `json:"message"`
+	Error   interface{} `json:"error"`
+}
+
+func (m Meta) GetLimitAndOffset() (int, int) {
 	return m.PerPage, (m.CurrentPage - 1) * m.PerPage
 }
 
-func (m *Meta) SetTotalData(totalData int) *Meta {
+func (m Meta) SetTotalData(totalData int) Meta {
 
 	m.TotalData = totalData
 	m.TotalPage = totalData / m.PerPage

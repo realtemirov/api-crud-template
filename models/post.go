@@ -8,6 +8,12 @@ type Post struct {
 }
 
 type GetAllPostsResponse struct {
-	Meta *Meta   `json:"meta"`
+	Meta Meta    `json:"meta"`
 	Data []*Post `json:"data"`
+}
+
+type PostRequest struct {
+	Title  string `json:"title" db:"title"`
+	Body   string `json:"body" db:"body"`
+	UserID int    `json:"user_id" db:"user_id"`
 }

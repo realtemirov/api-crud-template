@@ -18,6 +18,7 @@ type Config struct {
 }
 
 func NewConfig() *Config {
+
 	cnf := Config{}
 
 	cnf.HostPort = getOrDefault("HOST_PORT", "8080")

@@ -2,17 +2,18 @@ package postgres
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
-	"log"
 
-	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq"
 	"github.com/realtemirov/api-crud-template/config"
 	"github.com/realtemirov/api-crud-template/storage"
+	"github.com/rs/zerolog"
 )
 
 type Storage struct {
-	db  *sqlx.DB    // database connection
-	log *log.Logger // logger
+	db  *sql.DB        // database connection
+	log zerolog.Logger // logger
 
 	userRepository storage.UserI // userRepository storage.UserI
 	postRepository storage.PostI // postRepository storage.PostI
@@ -59,7 +60,7 @@ func (s *Storage) User() storage.UserI {
 }
 
 // NewPostgres creates a new instance of the Postgres storage.
-func NewPostgres(ctx context.Context, cfg *config.Config, log *log.Logger) (storage.StorageI, error) {
+func NewPostgres(ctx context.Context, cfg *config.Config, log zerolog.Logger) (storage.StorageI, error) {
 
 	// Create a connection string to connect to the database.
 	postgresConnString := fmt.Sprintf(
@@ -73,14 +74,14 @@ func NewPostgres(ctx context.Context, cfg *config.Config, log *log.Logger) (stor
 	)
 
 	// log
-	log.Println("Starting connection to the database...")
+	log.Info().Msg("Starting connection to the database...")
 
 	// Connect to the database.
-	db, err := sqlx.Connect("postgres", postgresConnString)
+	db, err := sql.Open("postgres", postgresConnString)
 
 	// checking error
 	if err != nil {
-		log.Printf("Method: NewPostgres Comment: Connect to the database Error: %v", err)
+		log.Info().AnErr("Method: NewPostgres Comment: Connect to the database Error: %v", err)
 		return nil, err
 	}
 
@@ -89,12 +90,12 @@ func NewPostgres(ctx context.Context, cfg *config.Config, log *log.Logger) (stor
 
 	// checking error
 	if err != nil {
-		log.Printf("Method: NewPostgres Comment: Ping test Error: %v", err)
+		log.Info().AnErr("Method: NewPostgres Comment: Ping test Error: %v", err)
 		return nil, err
 	}
 
 	// log
-	log.Println("Connection to the database is successful.")
+	log.Info().Msg("Connection to the database is successful.")
 
 	// Create a new instance of the Postgres storage and return it.
 	return &Storage{

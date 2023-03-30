@@ -2,21 +2,30 @@ package postgres
 
 import (
 	"context"
-	"log"
+	"database/sql"
 	"time"
 
-	"github.com/jmoiron/sqlx"
 	"github.com/realtemirov/api-crud-template/models"
+	"github.com/rs/zerolog"
+)
+
+const (
+	fieldsOfUser          = "id, created_at, updated_at, deleted_at, first_name, last_name, user_name, email, password"
+	fieldsOfUserWithoutID = "created_at, updated_at, deleted_at, first_name, last_name, user_name, email, password"
 )
 
 type userRepo struct {
-	db  *sqlx.DB
-	log *log.Logger
+	db  *sql.DB
+	log zerolog.Logger
 }
 
-const (
-	fieldsOfUser = "id, first_name, last_name, user_name, email, password, created_at, updated_at, deleted_at"
-)
+// newUserRepo constructor
+func newUserRepo(db *sql.DB, log zerolog.Logger) *userRepo {
+	return &userRepo{
+		db:  db,
+		log: log,
+	}
+}
 
 // CreateUser implements storage.UserI
 func (u *userRepo) CreateUser(ctx context.Context, user *models.User) (*models.User, error) {
@@ -27,39 +36,38 @@ func (u *userRepo) CreateUser(ctx context.Context, user *models.User) (*models.U
 	// query
 	query := `
 		INSERT INTO
-			users (` + fieldsOfUser + `)
+			users (` + fieldsOfUserWithoutID + `)
 		VALUES
-			($1, $2, $3, $4, $5, $6, $7, $8, $9)
+			($1, $2, $3, $4, $5, $6, $7, $8)
 		RETURNING ` + fieldsOfUser
 
 	// execute query and scan result
 	err := u.db.QueryRowContext(ctx, query,
-		user.ID,
+		time.Now().Unix(),
+		user.UpdatedAt,
+		user.DeletedAt,
 		user.FirstName,
 		user.LastName,
 		user.UserName,
 		user.Email,
 		user.Password,
-		user.CreatedAt,
-		user.UpdatedAt,
-		user.DeletedAt,
 	).Scan(
 		&result.ID,
+		&result.CreatedAt,
+		&result.UpdatedAt,
+		&result.DeletedAt,
 		&result.FirstName,
 		&result.LastName,
 		&result.UserName,
 		&result.Email,
 		&result.Password,
-		&result.CreatedAt,
-		&result.UpdatedAt,
-		&result.DeletedAt,
 	)
 
 	// check error
 	if err != nil {
 
 		// log error
-		u.log.Printf("Method CreateUser: error while creating user: %v", err)
+		u.log.Info().Msg("Method CreateUser: error while creating user: " + err.Error())
 
 		// return error
 		return nil, err
@@ -70,7 +78,7 @@ func (u *userRepo) CreateUser(ctx context.Context, user *models.User) (*models.U
 }
 
 // DeleteUser implements storage.UserI
-func (u *userRepo) DeleteUser(ctx context.Context, id int64) (*models.User, error) {
+func (u *userRepo) DeleteUser(ctx context.Context, id int) (*models.User, error) {
 
 	// response result
 	var result models.User
@@ -82,30 +90,30 @@ func (u *userRepo) DeleteUser(ctx context.Context, id int64) (*models.User, erro
 		SET
 			deleted_at = $1
 		WHERE
-			id = $2
+			id = $2 AND deleted_at = 0
 		RETURNING ` + fieldsOfUser
 
 	// execute query and scan result
 	err := u.db.QueryRowContext(ctx, query,
-		time.Now(),
+		time.Now().Unix(),
 		id,
 	).Scan(
 		&result.ID,
+		&result.CreatedAt,
+		&result.UpdatedAt,
+		&result.DeletedAt,
 		&result.FirstName,
 		&result.LastName,
 		&result.UserName,
 		&result.Email,
 		&result.Password,
-		&result.CreatedAt,
-		&result.UpdatedAt,
-		&result.DeletedAt,
 	)
 
 	// check error
 	if err != nil {
 
 		// log error
-		u.log.Printf("Method DeleteUser: error while deleting user: %v", err)
+		u.log.Info().Msg("Method DeleteUser: error while deleting user: " + err.Error())
 
 		// return error
 		return nil, err
@@ -134,21 +142,21 @@ func (u *userRepo) GetUserByEmail(ctx context.Context, email string) (*models.Us
 	// execute query and scan result
 	err := u.db.QueryRowContext(ctx, query, email).Scan(
 		&result.ID,
+		&result.CreatedAt,
+		&result.UpdatedAt,
+		&result.DeletedAt,
 		&result.FirstName,
 		&result.LastName,
 		&result.UserName,
 		&result.Email,
 		&result.Password,
-		&result.CreatedAt,
-		&result.UpdatedAt,
-		&result.DeletedAt,
 	)
 
 	// check error
 	if err != nil {
 
 		// log error
-		u.log.Printf("Method GetUserByEmail: error while getting user by email: %v", err)
+		u.log.Info().Msg("Method GetUserByEmail: error while getting user by email: " + err.Error())
 
 		// return error
 		return nil, err
@@ -159,7 +167,7 @@ func (u *userRepo) GetUserByEmail(ctx context.Context, email string) (*models.Us
 }
 
 // GetUserByID implements storage.UserI
-func (u *userRepo) GetUserByID(ctx context.Context, id int64) (*models.User, error) {
+func (u *userRepo) GetUserByID(ctx context.Context, id int) (*models.User, error) {
 
 	// response result
 	var result models.User
@@ -176,21 +184,21 @@ func (u *userRepo) GetUserByID(ctx context.Context, id int64) (*models.User, err
 	// execute query and scan result
 	err := u.db.QueryRowContext(ctx, query, id).Scan(
 		&result.ID,
+		&result.CreatedAt,
+		&result.UpdatedAt,
+		&result.DeletedAt,
 		&result.FirstName,
 		&result.LastName,
 		&result.UserName,
 		&result.Email,
 		&result.Password,
-		&result.CreatedAt,
-		&result.UpdatedAt,
-		&result.DeletedAt,
 	)
 
 	// check error
 	if err != nil {
 
 		// log error
-		u.log.Printf("Method GetUserByID: error while getting user by id: %v", err)
+		u.log.Info().Msg("Method GetUserByID: error while getting user by id: " + err.Error())
 
 		// return error
 		return nil, err
@@ -221,21 +229,21 @@ func (u *userRepo) GetUserByUserName(ctx context.Context, userName string) (*mod
 		userName,
 	).Scan(
 		&result.ID,
+		&result.CreatedAt,
+		&result.UpdatedAt,
+		&result.DeletedAt,
 		&result.FirstName,
 		&result.LastName,
 		&result.UserName,
 		&result.Email,
 		&result.Password,
-		&result.CreatedAt,
-		&result.UpdatedAt,
-		&result.DeletedAt,
 	)
 
 	// check error
 	if err != nil {
 
 		// log error
-		u.log.Printf("Method GetUserByUserName: error while getting user by user name: %v", err)
+		u.log.Info().Msg("Method GetUserByUserName: error while getting user by user name: " + err.Error())
 
 		// return error
 		return nil, err
@@ -258,7 +266,7 @@ func (u *userRepo) GetUsers(ctx context.Context, meta *models.Meta) (*models.Get
 		FROM
 			users
 		WHERE
-			deleted_at IS NULL
+			deleted_at = 0
 		ORDER BY
 			id DESC
 		LIMIT $1
@@ -268,35 +276,72 @@ func (u *userRepo) GetUsers(ctx context.Context, meta *models.Meta) (*models.Get
 	limit, offset := meta.GetLimitAndOffset()
 
 	// execute query and scan result
-	err := u.db.SelectContext(ctx, &result.Data, query, limit, offset)
+	rows, err := u.db.QueryContext(ctx, query, limit, offset)
 
 	// check error
 	if err != nil {
 
 		// log error
-		u.log.Printf("Method GetUsers: error while getting users: %v", err)
+		u.log.Info().Msg("Method GetUsers: error while getting users: " + err.Error())
 
 		// return error
 		return nil, err
 	}
 
+	// close rows
+	defer rows.Close()
+
+	// loop rows
+	for rows.Next() {
+
+		// response result
+		var user models.User
+
+		// scan result
+		err = rows.Scan(
+			&user.ID,
+			&user.CreatedAt,
+			&user.UpdatedAt,
+			&user.DeletedAt,
+			&user.FirstName,
+			&user.LastName,
+			&user.UserName,
+			&user.Email,
+			&user.Password,
+		)
+
+		// check error
+		if err != nil {
+
+			// log error
+			u.log.Info().Msg("Method: Getusers Error: " + err.Error())
+
+			// return error
+			return nil, err
+		}
+		// append result
+		result.Data = append(result.Data, &user)
+	}
+
 	// calculate total
 	query = `
 		SELECT
-			COUNT(id)
+			COUNT(1)
 		FROM
 			users
 		WHERE
-			deleted_at IS NULL`
+			deleted_at = 0`
 
 	// execute query and scan result
-	err = u.db.GetContext(ctx, &result.Meta.TotalData, query)
+	err = u.db.QueryRowContext(ctx, query).Scan(
+		&result.Meta.TotalData,
+	)
 
 	// check error
 	if err != nil {
 
 		// log error
-		u.log.Printf("Method GetUsers: error while getting total users: %v", err)
+		u.log.Info().Msg("Method GetUsers: error while getting total users: " + err.Error())
 
 		// return error
 		return nil, err
@@ -328,7 +373,7 @@ func (u *userRepo) UpdateUser(ctx context.Context, use *models.User) (*models.Us
 			password = $5,
 			updated_at = $6
 		WHERE
-			id = $7
+			id = $7 AND deleted_at = 0
 		RETURNING ` + fieldsOfUser
 
 	// execute query and scan result
@@ -338,25 +383,25 @@ func (u *userRepo) UpdateUser(ctx context.Context, use *models.User) (*models.Us
 		use.UserName,
 		use.Email,
 		use.Password,
-		time.Now(),
+		time.Now().Unix(),
 		use.ID,
 	).Scan(
 		&result.ID,
+		&result.CreatedAt,
+		&result.UpdatedAt,
+		&result.DeletedAt,
 		&result.FirstName,
 		&result.LastName,
 		&result.UserName,
 		&result.Email,
 		&result.Password,
-		&result.CreatedAt,
-		&result.UpdatedAt,
-		&result.DeletedAt,
 	)
 
 	// check error
 	if err != nil {
 
 		// log error
-		u.log.Printf("Method UpdateUser: error while updating user: %v", err)
+		u.log.Info().Msg("Method UpdateUser: error while updating user: " + err.Error())
 
 		// return error
 		return nil, err
@@ -366,10 +411,28 @@ func (u *userRepo) UpdateUser(ctx context.Context, use *models.User) (*models.Us
 	return &result, nil
 }
 
-// newUserRepo constructor
-func newUserRepo(db *sqlx.DB, log *log.Logger) *userRepo {
-	return &userRepo{
-		db:  db,
-		log: log,
+func (p *userRepo) RemoveFromDB(ctx context.Context, id int) error {
+
+	// query
+	query := `
+		DELETE FROM
+			users
+		WHERE
+			id = $1`
+
+	// execute query
+	_, err := p.db.ExecContext(ctx, query, id)
+
+	// check error
+	if err != nil {
+
+		// log error
+		p.log.Info().Msg("Method: RemoveFromDB Error: " + err.Error())
+
+		// return error
+		return err
 	}
+
+	// if no error, return nil
+	return nil
 }
